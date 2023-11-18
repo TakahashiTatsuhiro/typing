@@ -53,7 +53,6 @@ app.get('/', (req, res) => {
 //ログイン認証---------------------------------------------------------------
 app.post('/login', async (req, res) => {
 	const { username, password } = req.body;
-
 	try {
 		const user = await knex('users').where({ username }).first();
 		if (user && user.password === password) {

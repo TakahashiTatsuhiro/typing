@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 
 const LoginForm = () => {
 	const [username, setUsername] = useState('');
 	const [password, setPassword] = useState('');
 	const [message, setMessage] = useState('');
 	const navigate = useNavigate();
+	const { login } = useAuth();
 
 	const handleSubmit = async (event: React.FormEvent) => {
 		event.preventDefault();
@@ -22,6 +24,7 @@ const LoginForm = () => {
 			const data = await response.json();
 			if (response.ok) {
 				setMessage(data.message);
+				login(); // ログイン状態を更新
 				navigate('/userhome'); // ログイン成功時にUserHome画面に遷移
 			} else {
 				setMessage(data.message);
