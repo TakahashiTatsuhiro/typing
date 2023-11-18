@@ -3,7 +3,7 @@ import Navbar from './Navbar';
 const UserHome = () => {
 	return (
 		<>
-			<Navbar></Navbar>
+			<Navbar isSignup={false}></Navbar>
 			<div>ログインしました</div>
 		</>
 	);
