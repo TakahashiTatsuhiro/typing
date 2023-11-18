@@ -25,12 +25,13 @@ const SignupForm = () => {
 		}
 
 		try {
+			const password = password1;
 			const response = await fetch('http://localhost:3001/signup', {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',
 				},
-				body: JSON.stringify({ username, password1 }),
+				body: JSON.stringify({ username, password }),
 			});
 
 			const data = await response.json();

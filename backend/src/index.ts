@@ -7,6 +7,7 @@ import session from 'express-session';
 import cors from 'cors';
 import Knex from 'knex';
 import knexfile from './knexfile';
+import { escape } from 'querystring';
 
 //express設定-------------------------------------------------------------
 const app = express();
@@ -65,6 +66,25 @@ app.post('/login', async (req, res) => {
 	} catch (error) {
 		res.status(500).json({ success: false, message: 'サーバーエラー' });
 	}
+});
+
+//新規登録------------------------------------------------------------------
+app.post('/signup', async (req, res) => {
+    const { username, password } = req.body;
+	
+    try {
+        // ユーザー名の重複チェック
+        const existingUser = await knex('users').where({ username }).first();
+        if (existingUser) {
+            return res.status(409).json({ success: false, message: 'ユーザー名が既に存在します' });
+        }
+
+        // 新規ユーザーの追加
+        const newUser = await knex('users').insert({ username, password }).returning('*');
+        res.json({ success: true, user: newUser[0], message: '新規登録成功' });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'サーバーエラー' });
+    }
 });
 
 //ログアウト-----------------------------------------------------------------
