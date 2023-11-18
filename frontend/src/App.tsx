@@ -3,6 +3,7 @@ import LoginForm from './components/LoginForm';
 import UserHome from './components/UserHome';
 import ProtectedRoute from './components/ProtectedRoute';
 import { AuthProvider } from './contexts/AuthContext';
+import './styles/styles.css';
 
 const App = () => {
   return (
