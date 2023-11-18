@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const LoginForm = () => {
 	const [username, setUsername] = useState('');
 	const [password, setPassword] = useState('');
 	const [message, setMessage] = useState('');
+	const navigate = useNavigate();
 
 	const handleSubmit = async (event: React.FormEvent) => {
 		event.preventDefault();
@@ -20,6 +22,7 @@ const LoginForm = () => {
 			const data = await response.json();
 			if (response.ok) {
 				setMessage(data.message);
+				navigate('/userhome'); // ログイン成功時にUserHome画面に遷移
 			} else {
 				setMessage(data.message);
 			}
