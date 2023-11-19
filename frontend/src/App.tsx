@@ -6,15 +6,18 @@ import { AuthProvider } from './contexts/AuthContext';
 import SignupForm from './components/SignupForm';
 import Scores from './components/Scores';
 import './styles/styles.css';
+import Typing from './components/Typing';
 
 const App = () => {
   return (
     <AuthProvider>
       <Router>
         <Routes>
+          <Route path="/" element={<ProtectedRoute><UserHome /></ProtectedRoute>} />
           <Route path="/login" element={<LoginForm />} />
           <Route path='/signup' element={<SignupForm/>}></Route>
           <Route path="/userhome" element={<ProtectedRoute><UserHome /></ProtectedRoute>} />
+          <Route path="/typing" element={<ProtectedRoute><Typing /></ProtectedRoute>} />
           <Route path="/scores" element={<ProtectedRoute><Scores /></ProtectedRoute>} />
         </Routes>
       </Router>

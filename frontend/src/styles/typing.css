@@ -1,0 +1,11 @@
+.wait {
+    color: rgb(100, 102, 105);
+}
+
+.correct {
+    color: rgb(209, 208, 197);
+}
+
+.incorrect {
+    color: rgb(202, 71, 84);
+}

@@ -20,7 +20,7 @@ const SignupForm = () => {
 		console.log('pass2', password2);
 
 		if (username === '' || password1 !== password2) {
-			setMessage('記入内容が不正です')
+			setMessage('記入内容が不正です');
 			return;
 		}
 
@@ -50,7 +50,7 @@ const SignupForm = () => {
 
 	return (
 		<div>
-			<Navbar isSignup={true}></Navbar>
+			<Navbar />
 			<form className='form' onSubmit={handleSubmit}>
 				<input
 					type='text'
