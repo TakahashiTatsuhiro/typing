@@ -7,7 +7,6 @@ import session from 'express-session';
 import cors from 'cors';
 import Knex from 'knex';
 import knexfile from './knexfile';
-import { escape } from 'querystring';
 
 //express設定-------------------------------------------------------------
 const app = express();

@@ -1,14 +1,14 @@
 import '../styles/navbar.css';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import React from 'react';
 
-type Props = {
-	isSignup: boolean;
-};
-const Navbar: React.FC<Props> = ({ isSignup }) => {
+const Navbar = () => {
 	const navigate = useNavigate();
 	const { isAuthenticated, logout, userName } = useAuth();
+
+	const handleTitle = () => {
+		isAuthenticated ? navigate('/UserHome') : navigate('/login');
+	};
 
 	const handleLogout = async () => {
 		try {
@@ -33,17 +33,31 @@ const Navbar: React.FC<Props> = ({ isSignup }) => {
 		navigate('/signup');
 	};
 
-	const handleLogin = () => {
-		navigate('/login');
-	};
+	// const handleLogin = () => {
+	// 	navigate('/login');
+	// };
 
 	return (
 		<div className='navbar'>
-			<h2 className='navbar-header'>Let's Typing</h2>
-			{(() => {
+			<h2 className='navbar-header' onClick={handleTitle}>
+				Let's Typing
+			</h2>
+			{isAuthenticated ? (
+				<div className='navbar-rightDiv'>
+					<h2 className='navbar-elem'>{userName}</h2>
+					<button className='navbar-elem' onClick={handleLogout}>
+						ログアウト
+					</button>
+				</div>
+			) : (
+				<button className='navbar-elem' onClick={handleSignup}>
+					新規登録
+				</button>
+			)}
+			{/* {(() => {
 				if (isAuthenticated) {
 					return (
-						<div className='navbar-leftDiv'>
+						<div className='navbar-rightDiv'>
 							<h2 className='navbar-elem'>{userName}</h2>
 							<button className='navbar-elem' onClick={handleLogout}>
 								ログアウト
@@ -65,7 +79,7 @@ const Navbar: React.FC<Props> = ({ isSignup }) => {
 						);
 					}
 				}
-			})()}
+			})()} */}
 		</div>
 	);
 };

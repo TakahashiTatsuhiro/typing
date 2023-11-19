@@ -39,7 +39,7 @@ const LoginForm = () => {
 
 	return (
 		<div>
-			<Navbar isSignup={false}></Navbar>
+			<Navbar />
 			<form className='form' onSubmit={handleSubmit}>
 				<input
 					type='text'

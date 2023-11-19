@@ -1,10 +1,20 @@
+import { useNavigate } from 'react-router-dom';
 import Navbar from './Navbar';
+import '../styles/styles.css';
 
 const UserHome = () => {
+	const navigate = useNavigate();
+	const handleScores = () => {
+		navigate('/scores');
+	}
+
 	return (
 		<>
-			<Navbar isSignup={false}></Navbar>
-			<div>ログインしました</div>
+			<Navbar />
+			<div className='menu'>
+				<div className='menu-item'>Typing</div>
+				<div className='menu-item' onClick={handleScores}>Scores</div>
+			</div>
 		</>
 	);
 };

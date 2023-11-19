@@ -1,9 +1,11 @@
 .navbar {
+	/* height: 70px; */
 	width: 100%;
 	/* padding: 1rem; */
 	display: flex;
 	justify-content: space-between; /* 子要素を左右に分散させる */
-	background-color: #1c7e88;
+	background-color: rgb(226, 183, 20);
+	color: rgb(50, 52, 55);
 }
 
 .navbar-header {
@@ -11,7 +13,7 @@
 	/* margin-right: auto; */
 }
 
-.navbar-leftDiv {
+.navbar-rightDiv {
   display: flex;
   margin-top: auto;
   margin-bottom: auto;
