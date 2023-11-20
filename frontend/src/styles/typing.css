@@ -1,11 +1,22 @@
 .wait {
+    font-size: 1.5rem;
     color: rgb(100, 102, 105);
 }
 
 .correct {
+    font-size: 1.5rem;
     color: rgb(209, 208, 197);
 }
 
 .incorrect {
+    font-size: 1.5rem;
     color: rgb(202, 71, 84);
+}
+
+.spans {
+    display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+    width:70%
 }

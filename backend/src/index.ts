@@ -1,6 +1,7 @@
 import dotenv from 'dotenv';
 dotenv.config({ path: './.env' }); //相対パスの起点はこのファイルがある階層ではなくアプリを起動する階層なので、この指示が正しい。
 
+import fs from 'fs';
 import express from 'express';
 import { Request, Response, NextFunction } from 'express';
 import session from 'express-session';
@@ -15,9 +16,9 @@ const port = 3001; //vite側を3000にするため
 declare module 'express-session' {
 	interface SessionData {
 		user?: {
-			id:number,
-			username:string,
-			password:string
+			id: number;
+			username: string;
+			password: string;
 		};
 	}
 }
@@ -33,12 +34,28 @@ app.use(
 	})
 );
 
+// ヘルパー & ミドルウェア----------------------------------------------------
 function checkAuthenticated(req: Request, res: Response, next: NextFunction) {
 	if (req.session && req.session.user) {
 		return next();
 	}
 	res.status(401).json({ success: false, message: '未認証のアクセスです' });
 }
+
+//https://zenn.dev/k_kazukiiiiii/articles/cf3256ef6cbd84
+const shuffleArray = (array: string[]) => {
+	const cloneArray = [...array];
+
+	for (let i = cloneArray.length - 1; i >= 0; i--) {
+		let rand = Math.floor(Math.random() * (i + 1));
+		// 配列の要素の順番を入れ替える
+		let tmpStorage = cloneArray[i];
+		cloneArray[i] = cloneArray[rand];
+		cloneArray[rand] = tmpStorage;
+	}
+
+	return cloneArray;
+};
 
 // Knexインスタンスの初期化--------------------------------------------------
 // 環境に応じたKnex設定の選択
@@ -67,23 +84,23 @@ app.post('/login', async (req, res) => {
 	}
 });
 
-//新規登録------------------------------------------------------------------
+//新規メンバー登録------------------------------------------------------------------
 app.post('/signup', async (req, res) => {
-    const { username, password } = req.body;
-	
-    try {
-        // ユーザー名の重複チェック
-        const existingUser = await knex('users').where({ username }).first();
-        if (existingUser) {
-            return res.status(409).json({ success: false, message: 'ユーザー名が既に存在します' });
-        }
+	const { username, password } = req.body;
 
-        // 新規ユーザーの追加
-        const newUser = await knex('users').insert({ username, password }).returning('*');
-        res.json({ success: true, user: newUser[0], message: '新規登録成功' });
-    } catch (error) {
-        res.status(500).json({ success: false, message: 'サーバーエラー' });
-    }
+	try {
+		// ユーザー名の重複チェック
+		const existingUser = await knex('users').where({ username }).first();
+		if (existingUser) {
+			return res.status(409).json({ success: false, message: 'ユーザー名が既に存在します' });
+		}
+
+		// 新規ユーザーの追加
+		const newUser = await knex('users').insert({ username, password }).returning('*');
+		res.json({ success: true, user: newUser[0], message: '新規登録成功' });
+	} catch (error) {
+		res.status(500).json({ success: false, message: 'サーバーエラー' });
+	}
 });
 
 //ログアウト-----------------------------------------------------------------
@@ -94,6 +111,19 @@ app.post('/logout', (req, res) => {
 		}
 		res.json({ success: true, message: 'ログアウト成功' });
 	});
+});
+
+//単語データ取得-------------------------------------------------------------
+app.get('/words', (req, res) => {
+	const words: string[] = [];
+	const data = fs.readFileSync('./src/NGSL_1.2_stats.csv', 'utf-8');
+	console.log('csv', data);
+	let indexDatasArr = data.split('\n');
+	for (let i = 0; i < indexDatasArr.length; i++) {
+		words.push(indexDatasArr[i].split(',')[0]);
+	}
+
+	res.status(200).json(shuffleArray(words).slice(0, 30));
 });
 
 //リッスン--------------------------------------------------------------------

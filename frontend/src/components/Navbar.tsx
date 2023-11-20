@@ -40,7 +40,7 @@ const Navbar = () => {
 	return (
 		<div className='navbar'>
 			<h2 className='navbar-header' onClick={handleTitle}>
-				Let's Typing
+				Let's Type
 			</h2>
 			{isAuthenticated ? (
 				<div className='navbar-rightDiv'>
