@@ -2,15 +2,20 @@ import React from 'react';
 import { useEffect, useState } from 'react';
 import Navbar from './Navbar';
 import '../styles/typing.css';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 
 const Typing = () => {
+	const navigate = useNavigate();
+	const { userId } = useAuth();
+
 	//ステート宣言------------------------------------
-	const [sampleArr, setSampleArr] = useState<string[]>([]);
-	const [sampleStr, setSampleStr] = useState(''); //正解文字列
+	const [sampleArr, setSampleArr] = useState<string[]>([]); //正解の単語配列
+	const [sampleStr, setSampleStr] = useState(''); //正解の文字列
 	const [spans, setSpans] = useState<React.ReactElement[]>([]); //画面表示用のspanタグが入った配列
 	const [rawInput, setRawInput] = useState(''); //ユーザーの打った内容そのもの
 	const [input, setInput] = useState(''); //rawInputを結果集計のために加工したもの('?'を空文字に変換して、空文字でsplitする)
-	const [running, setRunning] = useState(false); //プレイ時間制限用の開始判定
+	const [state, setState] = useState<number>(0); //プレイ状態のステートマシン(0:開始前、1:プレイ中、2:プレイ終了後)
 	const limitSec = 10; //時間制限(秒)
 	const [countDown, setCountDown] = useState(limitSec);
 
@@ -50,8 +55,8 @@ const Typing = () => {
 	useEffect(() => {
 		const handleKeyDown = (e: KeyboardEvent) => {
 			//開始判定
-			if (!running) {
-				setRunning(true);
+			if (state === 0) {
+				setState(1);
 			}
 
 			//キー入力を受け入れ
@@ -66,6 +71,24 @@ const Typing = () => {
 			window.removeEventListener('keydown', handleKeyDown);
 		};
 	}, []);
+
+	useEffect(() => {
+		const latestRawInput = rawInput.slice(-1);
+		const sampleChar = sampleStr[rawInput.length - 1];
+		if (sampleChar === ' ') {
+			if (latestRawInput === ' ') {
+				setInput((prev) => prev + latestRawInput);
+			} else {
+				setInput((prev) => prev + '?');
+			}
+		} else {
+			setInput((prev) => prev + latestRawInput);
+		}
+	}, [rawInput]);
+
+	useEffect(() => {
+		checkResult();
+	}, [input]);
 
 	//spans更新--------------------------------------
 	const createSpans = () => {
@@ -82,7 +105,7 @@ const Typing = () => {
 					className = 'incorrect';
 					if (sampleStr[idx] === ' ') {
 						displayChar = '?'; // スペースのタイプミスの場合、?を表示
-						setInput((prev) => prev + displayChar);
+						setInput((prev) => prev + '?');
 					} else {
 						setInput((prev) => prev + rawInput[idx]);
 					}
@@ -97,8 +120,8 @@ const Typing = () => {
 		});
 	};
 	useEffect(() => {
-		setSpans(createSpans()); // userInputが変更されたらspansを更新
-	}, [rawInput, sampleStr]);
+		setSpans(createSpans()); // 画面マウント時とキー打鍵時にspansを更新
+	}, [sampleStr, rawInput]);
 
 	//タイマー処理------------------------------------
 	const checkResult = () => {
@@ -111,21 +134,39 @@ const Typing = () => {
 			}
 		}
 
-		//wpsを計算して返す
-		const wps = Math.floor(numOK / (limitSec / 60));
-		return wps;
+		//wpsを計算して保存
+		const resultWpm = Math.floor(numOK / (limitSec / 60));
+		return resultWpm;
 	};
-	const sendResult = (wps:number) => {
+	const sendResult = async (wpm: number) => {
+		console.log('lastWpm', wpm);
+		try {
+			const response = await fetch('http://localhost:3001/result', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify({ id: userId, wpm: wpm }),
+			});
 
+			if (response.ok) {
+				navigate('/scores');
+			} else {
+				navigate('userhome');
+			}
+		} catch (error) {
+			console.log('postWpmError', error);
+		}
 	};
 	useEffect(() => {
 		//https://jp-seemore.com/web/13310/#toc8
-		if (running) {
+		let countdown: number;
+		if (state === 1) {
 			// カウントダウンの開始時間を10秒と設定
 			let count = limitSec;
 
 			// タイマー処理を1秒ごとに繰り返し行う
-			const countdown = setInterval(() => {
+			countdown = setInterval(() => {
 				// カウントをデクリメント
 				count--;
 				setCountDown(count);
@@ -133,11 +174,19 @@ const Typing = () => {
 				// カウントが0になったらタイマーを終了し、終了メッセージを表示
 				if (count === 0) {
 					clearInterval(countdown);
-					checkResult();
+					setState(2);
 				}
 			}, 1000);
+		} else if (state === 2) {
+			sendResult(checkResult()); //タイマーのコード内で実行すると上手く動かないみたい
 		}
-	}, [running]);
+		// クリーンアップ関数
+		return () => {
+			if (countdown) {
+				clearInterval(countdown);
+			}
+		};
+	}, [state]);
 
 	//リターン----------------------------------------
 	return (
@@ -147,8 +196,8 @@ const Typing = () => {
 			<div className='spans'>
 				<p>{spans}</p>
 			</div>
-			<p>{rawInput}</p>
-			<p>{input}</p>
+			{/* <p>{rawInput}</p> */}
+			{/* <p>{input}</p> */}
 		</>
 	);
 };

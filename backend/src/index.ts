@@ -8,6 +8,7 @@ import session from 'express-session';
 import cors from 'cors';
 import Knex from 'knex';
 import knexfile from './knexfile';
+import { User } from '../../globals';
 
 //express設定-------------------------------------------------------------
 const app = express();
@@ -57,6 +58,7 @@ const shuffleArray = (array: string[]) => {
 	return cloneArray;
 };
 
+
 // Knexインスタンスの初期化--------------------------------------------------
 // 環境に応じたKnex設定の選択
 const knexConfig = knexfile[process.env.NODE_ENV || 'development'];
@@ -71,15 +73,20 @@ app.get('/', (req, res) => {
 app.post('/login', async (req, res) => {
 	const { username, password } = req.body;
 	try {
-		const user = await knex('users').where({ username }).first();
+		const user: User = await knex('users').where({ username }).first();
 		if (user && user.password === password) {
 			// ユーザー情報をセッションに格納
 			req.session.user = user;
-			res.json({ success: true, message: 'ログイン成功' });
+			res.json({
+				success: true,
+				user: { username: user.username, id: user.id },
+				message: 'ログイン成功',
+			});
 		} else {
 			res.status(401).json({ success: false, message: 'ログイン失敗' });
 		}
 	} catch (error) {
+		console.log('error', error);
 		res.status(500).json({ success: false, message: 'サーバーエラー' });
 	}
 });
@@ -96,8 +103,12 @@ app.post('/signup', async (req, res) => {
 		}
 
 		// 新規ユーザーの追加
-		const newUser = await knex('users').insert({ username, password }).returning('*');
-		res.json({ success: true, user: newUser[0], message: '新規登録成功' });
+		const newUser: User[] = await knex('users').insert({ username, password }).returning('*');
+		res.json({
+			success: true,
+			user: { id: newUser[0].id, username: newUser[0].username },
+			message: '新規登録成功',
+		});
 	} catch (error) {
 		res.status(500).json({ success: false, message: 'サーバーエラー' });
 	}
@@ -117,13 +128,20 @@ app.post('/logout', (req, res) => {
 app.get('/words', (req, res) => {
 	const words: string[] = [];
 	const data = fs.readFileSync('./src/NGSL_1.2_stats.csv', 'utf-8');
-	console.log('csv', data);
 	let indexDatasArr = data.split('\n');
 	for (let i = 0; i < indexDatasArr.length; i++) {
 		words.push(indexDatasArr[i].split(',')[0]);
 	}
 
 	res.status(200).json(shuffleArray(words).slice(0, 30));
+});
+
+//タイピング結果-------------------------------------------------------------
+app.post('/result', (req, res) => {
+	const { id, wpm } = req.body; //useridとwpm
+
+
+	res.status(200).send('');
 });
 
 //リッスン--------------------------------------------------------------------

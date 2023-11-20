@@ -5,11 +5,12 @@ import '../styles/styles.css';
 import Navbar from './Navbar';
 
 const LoginForm = () => {
+	const navigate = useNavigate();
+	const { login, setUserId, setUserName } = useAuth();
+
 	const [username, setUsername] = useState('');
 	const [password, setPassword] = useState('');
 	const [message, setMessage] = useState('');
-	const navigate = useNavigate();
-	const { login, setUserName } = useAuth();
 
 	const handleSubmit = async (event: React.FormEvent) => {
 		event.preventDefault();
@@ -25,14 +26,15 @@ const LoginForm = () => {
 
 			const data = await response.json();
 			if (response.ok) {
-				setMessage(data.message);
+				setUserId(data.user.id);
+				setUserName(data.user.username);
 				login(); // ログイン状態を更新
-				setUserName(username);
 				navigate('/userhome'); // ログイン成功時にUserHome画面に遷移
 			} else {
 				setMessage(data.message);
 			}
 		} catch (error) {
+			console.log('frontError',error);
 			setMessage('サーバーとの通信に失敗しました。');
 		}
 	};
