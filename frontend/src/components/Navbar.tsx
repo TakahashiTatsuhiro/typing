@@ -33,9 +33,6 @@ const Navbar = () => {
 		navigate('/signup');
 	};
 
-	// const handleLogin = () => {
-	// 	navigate('/login');
-	// };
 
 	return (
 		<div className='navbar'>
@@ -54,32 +51,6 @@ const Navbar = () => {
 					新規登録
 				</button>
 			)}
-			{/* {(() => {
-				if (isAuthenticated) {
-					return (
-						<div className='navbar-rightDiv'>
-							<h2 className='navbar-elem'>{userName}</h2>
-							<button className='navbar-elem' onClick={handleLogout}>
-								ログアウト
-							</button>
-						</div>
-					);
-				} else {
-					if (isSignup) {
-						return (
-							<button className='navbar-elem' onClick={handleLogin}>
-								ログイン
-							</button>
-						);
-					} else {
-						return (
-							<button className='navbar-elem' onClick={handleSignup}>
-								新規登録
-							</button>
-						);
-					}
-				}
-			})()} */}
 		</div>
 	);
 };

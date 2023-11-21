@@ -14,16 +14,17 @@
 }
 
 .navbar-rightDiv {
-  display: flex;
-  margin-top: auto;
-  margin-bottom: auto;
-  height: 80%;
+	display: flex;
+	margin-top: auto;
+	margin-bottom: auto;
+	height: 80%;
 }
 
 .navbar-elem {
-  margin-top: auto;
-  margin-bottom: auto;
+	margin-top: auto;
+	margin-bottom: auto;
 	margin-right: 1rem;
 	/* padding: 0.5rem 1rem; */
 	height: 80%;
+	font-size: 1.1rem;
 }

@@ -139,7 +139,6 @@ const Typing = () => {
 		return resultWpm;
 	};
 	const sendResult = async (wpm: number) => {
-		console.log('frontend',userId, wpm);
 		try {
 			const response = await fetch('http://localhost:3001/result', {
 				method: 'POST',
@@ -192,7 +191,7 @@ const Typing = () => {
 	return (
 		<>
 			<Navbar />
-			<div>残り{countDown}秒だよ</div>
+			<div className='message'>残り {countDown}秒 だよ</div>
 			<div className='spans'>
 				<p>{spans}</p>
 			</div>

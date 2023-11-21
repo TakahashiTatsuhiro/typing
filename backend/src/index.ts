@@ -135,10 +135,9 @@ app.get('/words', (req, res) => {
 	res.status(200).json(shuffleArray(words).slice(0, 30));
 });
 
-//タイピング結果-------------------------------------------------------------
+//タイピング結果登録-----------------------------------------------------------
 app.post('/result', async (req, res) => {
 	const { id, wpm } = req.body; // ユーザーIDとタイピングスピード（WPM）
-	console.log('backend',id, wpm);
 	try {
 		// results テーブルに新しい結果を挿入
 		await knex('results').insert({
@@ -148,6 +147,19 @@ app.post('/result', async (req, res) => {
 		});
 
 		res.status(200).json({ success: true, message: '結果が保存されました' });
+	} catch (error) {
+		console.log('error', error);
+		res.status(500).json({ success: false, message: 'サーバーエラー' });
+	}
+});
+
+//タイピング結果出力-----------------------------------------------------------
+app.get('/scores', async (req, res) => {
+	try {
+		const scores = await knex('results')
+			.join('users', 'users.id', '=', 'results.user_id')
+			.select('users.id as user_id', 'users.username', 'results.date', 'results.score');
+		res.status(200).json({ success: true, scores, message: '正常に完了' });
 	} catch (error) {
 		console.log('error', error);
 		res.status(500).json({ success: false, message: 'サーバーエラー' });
