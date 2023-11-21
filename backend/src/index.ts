@@ -132,7 +132,7 @@ app.get('/words', (req, res) => {
 		words.push(indexDatasArr[i].split(',')[0]);
 	}
 
-	res.status(200).json(shuffleArray(words).slice(0, 30));
+	res.status(200).json(shuffleArray(words).slice(0, 200));
 });
 
 //タイピング結果登録-----------------------------------------------------------

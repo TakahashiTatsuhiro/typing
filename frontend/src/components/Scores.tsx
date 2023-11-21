@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import Navbar from './Navbar';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Legend, Tooltip } from 'recharts';
 import { useAuth } from '../contexts/AuthContext';
 import { Score, midData, finalData } from '../../../globals';
 import '../styles/scores.css';
@@ -31,7 +31,7 @@ const Scores = () => {
 	const [displayAll, setDisplayAll] = useState(false);
 	const handleButton = () => {
 		setDisplayAll(!displayAll);
-	}
+	};
 
 	// サーバーから取れる全得点データ -------------------------------------
 	const [scores, setScores] = useState<Score[]>();
@@ -44,11 +44,11 @@ const Scores = () => {
 					const data = await response.json();
 
 					if (response.ok) {
-						const scores:Score[] = data.scores;
-						if (displayAll){
+						const scores: Score[] = data.scores;
+						if (displayAll) {
 							setScores(scores);
 						} else {
-							setScores(scores.filter(item=>item.user_id === userId));
+							setScores(scores.filter((item) => item.user_id === userId));
 						}
 					} else {
 						setScores([]);
@@ -76,6 +76,13 @@ const Scores = () => {
 			}
 		}
 	}, [scores, userName]);
+
+	//ヘルパー(グラフ色生成)　https://qiita.com/anchoor/items/5edd2a67340770a8ca44
+	const generateColor = (index: number, total: number) => {
+		const step = 360 / total;
+		const hue = step * index;
+		return `hsl(${hue}, 100%, 50%)`;
+	};
 
 	//グラフ描画 https://zenn.dev/acha_n/articles/how-to-customize-recharts
 	const makeChart = () => {
@@ -113,6 +120,12 @@ const Scores = () => {
 			}
 			console.log('finalData', finalData);
 
+			//色生成
+			const colors: string[] = [];
+			for (let i = 0; i < midData.length; i++) {
+				colors.push(generateColor(i, midData.length));
+			}
+
 			return (
 				<LineChart
 					className='graph'
@@ -120,11 +133,13 @@ const Scores = () => {
 					height={Math.floor(height * 0.7)}
 					data={finalData}
 				>
-					<CartesianGrid stroke='#ccc' />
+					<CartesianGrid strokeDasharray='3 3' />
 					<XAxis dataKey='play' />
 					<YAxis />
-					{midData.map((mid) => {
-						return <Line type='monotone' dataKey={mid.username} stroke='#8884d8'></Line>;
+					<Legend />
+					<Tooltip />
+					{midData.map((mid, idx) => {
+						return <Line type='monotone' dataKey={mid.username} stroke={colors[idx]}></Line>;
 					})}
 				</LineChart>
 			);
@@ -137,9 +152,11 @@ const Scores = () => {
 	return (
 		<>
 			<Navbar />
-			{message && <p className='message'>{message}</p>}
+			<div className='upperContents'>
+				{message && <p className='message'>{message}</p>}
+				<button onClick={handleButton}>表示切替</button>
+			</div>
 			{makeChart()}
-			<button onClick={handleButton}>表示切替</button>
 		</>
 	);
 };
