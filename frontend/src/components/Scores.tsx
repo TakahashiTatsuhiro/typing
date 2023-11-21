@@ -3,8 +3,36 @@ import Navbar from './Navbar';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid } from 'recharts';
 import { useAuth } from '../contexts/AuthContext';
 import { Score, midData, finalData } from '../../../globals';
+import '../styles/scores.css';
 
 const Scores = () => {
+	// グラフサイズ-----------------------------------------------------
+	const [width, setWidth] = useState(window.innerWidth);
+	const [height, setHeight] = useState(window.innerHeight);
+	const handleResize = () => {
+		setWidth(window.innerWidth);
+		setHeight(window.innerHeight);
+	};
+	useEffect(
+		//第１引数…副作用
+		() => {
+			window.addEventListener('resize', handleResize);
+
+			//returnでクリーンアップ処理を記述
+			return () => {
+				window.removeEventListener('resize', handleResize);
+			};
+		},
+		[]
+	);
+
+	//グラフ表示対象(全員か自分だけか)------------------------------------
+	const { userId } = useAuth();
+	const [displayAll, setDisplayAll] = useState(false);
+	const handleButton = () => {
+		setDisplayAll(!displayAll);
+	}
+
 	// サーバーから取れる全得点データ -------------------------------------
 	const [scores, setScores] = useState<Score[]>();
 	useEffect(() => {
@@ -16,7 +44,12 @@ const Scores = () => {
 					const data = await response.json();
 
 					if (response.ok) {
-						setScores(data.scores);
+						const scores:Score[] = data.scores;
+						if (displayAll){
+							setScores(scores);
+						} else {
+							setScores(scores.filter(item=>item.user_id === userId));
+						}
 					} else {
 						setScores([]);
 					}
@@ -27,7 +60,7 @@ const Scores = () => {
 			}
 		};
 		getScores();
-	}, []);
+	}, [displayAll]);
 
 	// ユーザーの最新スコアを表示----------------------------------------
 	const [message, SetMessage] = useState('');
@@ -81,7 +114,12 @@ const Scores = () => {
 			console.log('finalData', finalData);
 
 			return (
-				<LineChart className='menu' width={600} height={300} data={finalData}>
+				<LineChart
+					className='graph'
+					width={Math.floor(width * 0.7)}
+					height={Math.floor(height * 0.7)}
+					data={finalData}
+				>
 					<CartesianGrid stroke='#ccc' />
 					<XAxis dataKey='play' />
 					<YAxis />
@@ -99,8 +137,9 @@ const Scores = () => {
 	return (
 		<>
 			<Navbar />
-			{message && <p>{message}</p>}
+			{message && <p className='message'>{message}</p>}
 			{makeChart()}
+			<button onClick={handleButton}>表示切替</button>
 		</>
 	);
 };

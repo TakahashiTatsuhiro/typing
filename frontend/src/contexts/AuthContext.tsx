@@ -1,4 +1,4 @@
-// src/contexts/AuthContext.tsx
+// https://masa-engineer-blog.com/react-state-manage-with-context/
 import { createContext, useState, useContext, ReactNode } from 'react';
 
 interface AuthContextType {

@@ -1,0 +1,10 @@
+.graph {
+    margin: auto;
+}
+
+.message {
+    display: flex;
+	margin-top: auto;
+	margin-bottom: auto;
+    font-size: 1.5rem;
+}
