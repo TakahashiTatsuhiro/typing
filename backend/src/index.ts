@@ -7,7 +7,7 @@ import { Request, Response, NextFunction } from 'express';
 import session from 'express-session';
 import cors from 'cors';
 import Knex from 'knex';
-import knexfile from './knexfile';
+import knexfile from '../knexfile';
 import { User } from '../../globals';
 
 //express設定-------------------------------------------------------------
@@ -57,7 +57,6 @@ const shuffleArray = (array: string[]) => {
 
 	return cloneArray;
 };
-
 
 // Knexインスタンスの初期化--------------------------------------------------
 // 環境に応じたKnex設定の選択
@@ -137,11 +136,22 @@ app.get('/words', (req, res) => {
 });
 
 //タイピング結果-------------------------------------------------------------
-app.post('/result', (req, res) => {
-	const { id, wpm } = req.body; //useridとwpm
+app.post('/result', async (req, res) => {
+	const { id, wpm } = req.body; // ユーザーIDとタイピングスピード（WPM）
+	console.log('backend',id, wpm);
+	try {
+		// results テーブルに新しい結果を挿入
+		await knex('results').insert({
+			user_id: id,
+			date: new Date(), // 現在の日付と時刻
+			score: wpm,
+		});
 
-
-	res.status(200).send('');
+		res.status(200).json({ success: true, message: '結果が保存されました' });
+	} catch (error) {
+		console.log('error', error);
+		res.status(500).json({ success: false, message: 'サーバーエラー' });
+	}
 });
 
 //リッスン--------------------------------------------------------------------

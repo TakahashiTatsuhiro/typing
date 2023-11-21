@@ -139,7 +139,7 @@ const Typing = () => {
 		return resultWpm;
 	};
 	const sendResult = async (wpm: number) => {
-		console.log('lastWpm', wpm);
+		console.log('frontend',userId, wpm);
 		try {
 			const response = await fetch('http://localhost:3001/result', {
 				method: 'POST',
