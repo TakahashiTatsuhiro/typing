@@ -21,6 +21,7 @@ const LoginForm = () => {
 				headers: {
 					'Content-Type': 'application/json',
 				},
+				credentials: 'include', // こうするとログイン成功時にクッキーを保存し以降のリクエストに自動でクッキーを含める
 				body: JSON.stringify({ username, password }),
 			});
 

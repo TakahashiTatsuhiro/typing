@@ -19,19 +19,31 @@ declare module 'express-session' {
 		user?: {
 			id: number;
 			username: string;
-			password: string;
+			password?: string;
 		};
 	}
 }
 
-app.use(cors()); // CORS（Cross-Origin Resource Sharing）の設定
-app.use(express.json()); // JSONリクエストボディの解析
+// JSONリクエストボディの解析
+app.use(express.json());
+// セッション
 app.use(
 	session({
-		secret: process.env.SESSTION_SECRET || 'secret_key_wo_ireyou',
+		secret: process.env.SESSION_SECRET || 'secret_key_wo_ireyou',
 		resave: false,
-		saveUninitialized: true,
-		cookie: { secure: process.env.NODE_ENV === 'production' }, // 開発環境と本番環境で切り替える
+		saveUninitialized: false, // セッションが変更されない限り、新しいセッションは作成されない
+		cookie: {
+			secure: process.env.NODE_ENV === 'production', // 本番環境ではtrueにする
+			httpOnly: true, // JavaScriptからのアクセスを防ぐ
+			maxAge: 24 * 60 * 60 * 1000, // クッキーの有効期限（例: 1日）
+		},
+	})
+);
+// CORS（Cross-Origin Resource Sharing）の設定
+app.use(
+	cors({
+		origin: 'http://localhost:3000', // 本番環境では本番のフロントエンドのURLに変更
+		credentials: true, // クッキーを含むリクエストを許可
 	})
 );
 
@@ -74,8 +86,8 @@ app.post('/login', async (req, res) => {
 	try {
 		const user: User = await knex('users').where({ username }).first();
 		if (user && user.password === password) {
-			// ユーザー情報をセッションに格納
-			req.session.user = user;
+			// ユーザー情報をセッションに格納(passwordは含めない)
+			req.session.user = { id: user.id, username: user.username };
 			res.json({
 				success: true,
 				user: { username: user.username, id: user.id },
@@ -136,16 +148,21 @@ app.get('/words', (req, res) => {
 });
 
 //タイピング結果登録-----------------------------------------------------------
-app.post('/result', async (req, res) => {
-	const { id, wpm } = req.body; // ユーザーIDとタイピングスピード（WPM）
+app.post('/result', checkAuthenticated, async (req, res) => {
+    const userId = req.session.user?.id; // ユーザーIDはreq.bodyからではなくセッションから取得すると、フロント側の情報の真偽を疑う必要がなくなる
+    const { wpm } = req.body; // タイピングスピード（WPM）
+
+	if (!userId) {
+        return res.status(403).json({ success: false, message: 'ユーザーIDが見つかりません' });
+    }
+
 	try {
 		// results テーブルに新しい結果を挿入
 		await knex('results').insert({
-			user_id: id,
+			user_id: userId,
 			date: new Date(), // 現在の日付と時刻
 			score: wpm,
 		});
-
 		res.status(200).json({ success: true, message: '結果が保存されました' });
 	} catch (error) {
 		console.log('error', error);
@@ -154,10 +171,12 @@ app.post('/result', async (req, res) => {
 });
 
 //タイピング結果出力-----------------------------------------------------------
-app.get('/scores', async (req, res) => {
+app.get('/scores', checkAuthenticated, async (req, res) => {
 	try {
+		const userId = req.session.user?.id;
 		const scores = await knex('results')
 			.join('users', 'users.id', '=', 'results.user_id')
+			// .where('users.id', userId) // 特定のユーザーのスコアのみを取得
 			.select('users.id as user_id', 'users.username', 'results.date', 'results.score');
 		res.status(200).json({ success: true, scores, message: '正常に完了' });
 	} catch (error) {

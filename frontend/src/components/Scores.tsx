@@ -40,7 +40,9 @@ const Scores = () => {
 			try {
 				const getData = async () => {
 					//サーバーからデータを取ってくる
-					const response = await fetch('http://localhost:3001/scores');
+					const response = await fetch('http://localhost:3001/scores', {
+						credentials: 'include' // クッキーを含む
+					});
 					const data = await response.json();
 
 					if (response.ok) {

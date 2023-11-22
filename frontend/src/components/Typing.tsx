@@ -145,6 +145,7 @@ const Typing = () => {
 				headers: {
 					'Content-Type': 'application/json',
 				},
+				credentials: 'include', // クッキーを含む
 				body: JSON.stringify({ id: userId, wpm: wpm }),
 			});
 
