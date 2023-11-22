@@ -3,6 +3,7 @@ dotenv.config({ path: './.env' }); //相対パスの起点はこのファイル�
 
 import fs from 'fs';
 import express from 'express';
+import crypto from 'crypto';
 import { Request, Response, NextFunction } from 'express';
 import session from 'express-session';
 import cors from 'cors';
@@ -84,17 +85,23 @@ app.get('/', (req, res) => {
 app.post('/login', async (req, res) => {
 	const { username, password } = req.body;
 	try {
-		const user: User = await knex('users').where({ username }).first();
-		if (user && user.password === password) {
-			// ユーザー情報をセッションに格納(passwordは含めない)
-			req.session.user = { id: user.id, username: user.username };
-			res.json({
-				success: true,
-				user: { username: user.username, id: user.id },
-				message: 'ログイン成功',
-			});
+		const user = await knex('users').where({ username }).first();
+		if (user) {
+			const hash = crypto.createHash('sha256');
+			const hashedInputPass = hash.update(user.salt + password).digest('hex');
+
+			if (hashedInputPass === user.hashedPass) {
+				req.session.user = { id: user.id, username: user.username };
+				res.json({
+					success: true,
+					user: { username: user.username, id: user.id },
+					message: 'ログイン成功',
+				});
+			} else {
+				res.status(401).json({ success: false, message: 'ログイン失敗' });
+			}
 		} else {
-			res.status(401).json({ success: false, message: 'ログイン失敗' });
+			res.status(401).json({ success: false, message: 'ユーザーが見つかりません' });
 		}
 	} catch (error) {
 		console.log('error', error);
@@ -107,14 +114,18 @@ app.post('/signup', async (req, res) => {
 	const { username, password } = req.body;
 
 	try {
-		// ユーザー名の重複チェック
 		const existingUser = await knex('users').where({ username }).first();
 		if (existingUser) {
 			return res.status(409).json({ success: false, message: 'ユーザー名が既に存在します' });
 		}
 
-		// 新規ユーザーの追加
-		const newUser: User[] = await knex('users').insert({ username, password }).returning('*');
+		const salt = crypto.randomBytes(6).toString('hex');
+		const hashedPass = crypto
+			.createHash('sha256')
+			.update(salt + password)
+			.digest('hex');
+
+		const newUser = await knex('users').insert({ username, salt, hashedPass }).returning('*');
 		res.json({
 			success: true,
 			user: { id: newUser[0].id, username: newUser[0].username },
@@ -149,12 +160,12 @@ app.get('/words', (req, res) => {
 
 //タイピング結果登録-----------------------------------------------------------
 app.post('/result', checkAuthenticated, async (req, res) => {
-    const userId = req.session.user?.id; // ユーザーIDはreq.bodyからではなくセッションから取得すると、フロント側の情報の真偽を疑う必要がなくなる
-    const { wpm } = req.body; // タイピングスピード（WPM）
+	const userId = req.session.user?.id; // ユーザーIDはreq.bodyからではなくセッションから取得すると、フロント側の情報の真偽を疑う必要がなくなる
+	const { wpm } = req.body; // タイピングスピード（WPM）
 
 	if (!userId) {
-        return res.status(403).json({ success: false, message: 'ユーザーIDが見つかりません' });
-    }
+		return res.status(403).json({ success: false, message: 'ユーザーIDが見つかりません' });
+	}
 
 	try {
 		// results テーブルに新しい結果を挿入
