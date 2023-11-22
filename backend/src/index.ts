@@ -27,7 +27,8 @@ declare module 'express-session' {
 
 // JSONリクエストボディの解析
 app.use(express.json());
-// セッション
+
+// セッション(一般的？)
 app.use(
 	session({
 		secret: process.env.SESSION_SECRET || 'secret_key_wo_ireyou',
@@ -40,6 +41,14 @@ app.use(
 		},
 	})
 );
+// セッション(カスタム的？今回は使わない)
+app.get('/set-token', (req, res)=>{
+	const sessionToken = crypto.randomBytes(16).toString('hex');
+	res.cookie('token',sessionToken);
+	res.status(200).send('cookie added');
+})
+
+
 // CORS（Cross-Origin Resource Sharing）の設定
 app.use(
 	cors({
