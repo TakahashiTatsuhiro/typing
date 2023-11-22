@@ -5,7 +5,7 @@ export async function up(knex: Knex): Promise<void> {
     return knex.schema.createTable('results', function (table) {
 		table.increments('id').primary();
 		table.integer('user_id').references('id').inTable('users');
-		table.date('date').notNullable();
+		table.date('date');
         table.float('score').notNullable();
 	});
 }

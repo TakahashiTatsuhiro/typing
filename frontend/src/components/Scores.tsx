@@ -139,7 +139,7 @@ const Scores = () => {
 					<Legend />
 					<Tooltip />
 					{midData.map((mid, idx) => {
-						return <Line type='monotone' dataKey={mid.username} stroke={colors[idx]}></Line>;
+						return <Line type='monotone' dataKey={mid.username} stroke={colors[idx]}  strokeWidth={2}></Line>;
 					})}
 				</LineChart>
 			);
