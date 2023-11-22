@@ -1,5 +1,11 @@
+import fs from 'fs';
 import dotenv from 'dotenv';
-dotenv.config({ path: './.env' }); //相対パスの起点はこのファイルがある階層ではなくアプリを起動する階層なので、この指示が正しい。
+const envPath = './.env';
+
+// .env ファイルが存在するかチェック
+if (fs.existsSync(envPath)) {
+  dotenv.config({ path: envPath });
+} 
 
 import { Knex } from 'knex';
 
